@@ -1064,3 +1064,57 @@ setTimeout(() => {
     splash.style.opacity = 0;
     setTimeout(() => splash.style.display = 'none', 1000);
 }, 1500); // dura 1.5 segundos
+// Función para agrupar registros usando K-means
+function clusterData() {
+    if (!processedData || processedData.length === 0) {
+        alert('No hay datos cargados para agrupar');
+        return;
+    }
+
+    // 1. Filtrar columnas numéricas
+    const headers = Object.keys(processedData[0]).filter(h => h !== 'Código');
+    const numericHeaders = headers.filter(header =>
+        processedData.every(row => !isNaN(parseFloat(row[header])))
+    );
+
+    if (numericHeaders.length === 0) {
+        alert('No hay columnas numéricas para agrupar');
+        return;
+    }
+
+    // 2. Preparar datos
+    const inputs = processedData.map(row => 
+        numericHeaders.map(header => parseFloat(row[header]))
+    );
+
+    // 3. Inicializar K-means
+    const k = 3; // Número de clusters (puedes ajustar)
+    const options = {k: k};
+    const kmeans = ml5.KMeans(options, modelReady);
+
+    function modelReady() {
+        console.log('Modelo K-means listo. Entrenando...');
+        kmeans.cluster(inputs, clustersReady);
+    }
+
+    function clustersReady(err, result) {
+        if (err) {
+            console.error('Error en clustering:', err);
+            return;
+        }
+
+        console.log('Resultado de clustering:', result);
+
+        // Asignar cluster a cada fila
+        processedData.forEach((row, index) => {
+            row.Cluster = result.labels[index];
+        });
+
+        filteredData = null; // Resetear filtros
+        currentPage = 1; // Ir a la primera página
+        populateFilterOptions(); // Actualizar filtros
+        renderTableData(); // Volver a mostrar datos
+
+        alert(`Clustering terminado. Se identificaron ${k} grupos.`);
+    }
+}
