@@ -1118,3 +1118,5 @@ function clusterData() {
         alert(`Clustering terminado. Se identificaron ${k} grupos.`);
     }
 }
+const clusterBtn = document.getElementById('clusterBtn');
+clusterBtn.addEventListener('click', clusterData);
